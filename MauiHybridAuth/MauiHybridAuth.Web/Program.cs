@@ -18,6 +18,8 @@ builder.Services.AddRazorComponents()
 // Add device-specific services used by the MauiHybridAuth.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 
+builder.Services.AddScoped<IWeatherService, WeatherService>();
+
 // Add Auth services used by the Web app
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -89,5 +91,13 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(MauiHybridAuth.Shared._Imports).Assembly);
 
 app.MapAdditionalIdentityEndpoints();
+
+app.MapGet("/weatherforecast", (IWeatherService weatherService) =>
+{
+    return weatherService.GetWeatherForecasts();
+})
+//.RequireAuthorization()
+.WithName("GetWeatherForecast")
+.WithOpenApi();
 
 app.Run();

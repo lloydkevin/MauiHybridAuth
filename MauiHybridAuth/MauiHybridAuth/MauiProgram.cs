@@ -20,6 +20,7 @@ namespace MauiHybridAuth
 
             // Add device-specific services used by the MauiHybridAuth.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
+            builder.Services.AddSingleton<IWeatherService, WeatherService>();
 
             builder.Services.AddMauiBlazorWebView();
 
@@ -37,7 +38,27 @@ namespace MauiHybridAuth
             builder.Services.AddScoped<AuthenticationStateProvider>(s 
                 => (MauiAuthenticationStateProvider)s.GetRequiredService<ICustomAuthenticationStateProvider>());
 
+            string url = "https://localhost:7157";
+#if ANDROID
+            url = url.Replace("localhost", "10.0.2.2");            
+#endif
+            builder.Services.AddSingleton<HttpClient>(sp =>
+            {
+                var client = GetClient();
+                client.BaseAddress = new Uri(url);
+                return client;
+            });
+
             return builder.Build();
+        }
+
+        private static HttpClient GetClient()
+        {
+#if WINDOWS || MACCATALYST
+            return new HttpClient();
+#else
+            return new HttpClient(new HttpsClientHandlerService().GetPlatformMessageHandler()); 
+#endif
         }
     }
 }
